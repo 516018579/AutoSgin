@@ -35,37 +35,14 @@ namespace AutoSgin.Services
             await _dbContext.SaveChangesAsync();
         }
 
-        //        public async Task Sgin(string sginUrl, string cookieValue)
-        //        {
-        //            var handler = new HttpClientHandler();
-        //            var httpClient = new HttpClient(handler);
+        public async Task Sgin(int webId)
+        {
+            var web = await GetWeb(webId);
+            await Sgin(web);
+        }
 
-        //#if DEBUG
-        //            handler.Proxy = new WebProxy("http://127.0.0.1:1080/");
-        //            handler.UseProxy = true;
-        //#endif
 
-        //            handler.UseCookies = true;
-        //            var cookieContainer = handler.CookieContainer = new CookieContainer();
-
-        //            var uri = new Uri(sginUrl);
-
-        //            cookieValue.Split(';', StringSplitOptions.RemoveEmptyEntries).ToList().ForEach(x =>
-        //            {
-        //                var cookieKeyValue = x.Split('=');
-        //                cookieContainer.Add(new Cookie(cookieKeyValue[0], cookieKeyValue[1]) { Domain = uri.Host });
-        //            });
-
-        //            var result = await httpClient.PostAsync(uri, new StringContent(""));
-
-        //            var text = await result.Content.ReadAsStringAsync();
-
-        //            var isSuccess = text.Contains("MB");
-
-        //            Console.WriteLine(isSuccess ? "OK" : "Fail");
-        //        }
-
-        public async Task Sgin(WebSite web)
+        private async Task Sgin(WebSite web)
         {
             var handler = new HttpClientHandler();
             var httpClient = new HttpClient(handler);
@@ -145,11 +122,46 @@ namespace AutoSgin.Services
             }
         }
 
-
-
-        public async Task AddWeb(WebSite web)
+        public ValueTask<WebSite> GetWeb(int id)
         {
-            await _dbContext.WebSite.AddAsync(web);
+            return _dbContext.WebSite.FindAsync(id);
+        }
+
+        public Task<List<WebSite>> GetAllWeb()
+        {
+            return _dbContext.WebSite.ToListAsync();
+        }
+
+        public async Task SetWeb(WebSite web)
+        {
+            if (web.Id > 0)
+            {
+                _dbContext.WebSite.Update(web);
+            }
+            else
+                await _dbContext.WebSite.AddAsync(web);
+
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public ValueTask<UserInfo> GetUser(int id)
+        {
+            return _dbContext.UserInfo.FindAsync(id);
+        }
+
+        public Task<List<UserInfo>> GetAllUser()
+        {
+            return _dbContext.UserInfo.ToListAsync();
+        }
+
+        public async Task SetUser(UserInfo user)
+        {
+            if (user.Id > 0)
+            {
+                _dbContext.UserInfo.Update(user);
+            }
+            else
+                await _dbContext.UserInfo.AddAsync(user);
 
             await _dbContext.SaveChangesAsync();
         }

@@ -93,7 +93,7 @@ namespace AutoSgin
                     var sginService = app.ApplicationServices.GetService<ISginService>();
                     return sginService.SginAll();
                 })
-                .DailyAtHour(0);
+                .DailyAtHour(1);
             });
         }
     }
