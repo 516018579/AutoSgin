@@ -8,6 +8,6 @@ namespace AutoSgin.Services
     public interface ISginService : IApplicationService
     {
         Task SginAll();
-        Task Sgin(string sginUrl, string cookieValue);
+        //Task Sgin(string sginUrl, string cookieValue);
     }
 }

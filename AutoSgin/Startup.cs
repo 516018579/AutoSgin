@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoSgin.DB;
+using AutoSgin.Filters;
 using AutoSgin.Services;
 using Coravel;
 using Coravel.Scheduling.Schedule.Interfaces;
@@ -9,6 +11,7 @@ using Coravel.Scheduling.Schedule.Mutex;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -21,17 +24,24 @@ namespace AutoSgin
 {
     public class Startup
     {
+        private readonly IConfigurationRoot _appConfiguration;
+
         public Startup(IConfiguration configuration)
         {
-            Configuration = configuration;
+            _appConfiguration = (IConfigurationRoot)configuration;
         }
 
-        public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+            services.AddEntityFrameworkSqlite()
+                .AddDbContext<SginDbContext>(options =>
+                    {
+                        options.UseSqlite(_appConfiguration.GetConnectionString("Default"));
+                    });
+
+            services.AddControllers(config => { config.Filters.Add<ApiExceptionFilter>(); });
 
             services.AddSwaggerGen(c =>
             {
@@ -46,11 +56,9 @@ namespace AutoSgin
 
             services.AddScheduler();
 
-            var mutex = new InMemoryMutex();
-            mutex.Using(new SystemTime());
-            services.AddSingleton<IMutex>(mutex);
+            services.AddSingleton<IMutex>(new InMemoryMutex());
 
-            services.AddSingleton(typeof(ISginService), typeof(SginService));
+            services.AddTransient(typeof(ISginService), typeof(SginService));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -76,7 +84,7 @@ namespace AutoSgin
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
             });
 
-           
+
 
             app.ApplicationServices.UseScheduler(scheduler =>
             {
@@ -85,7 +93,7 @@ namespace AutoSgin
                     var sginService = app.ApplicationServices.GetService<ISginService>();
                     return sginService.SginAll();
                 })
-                .DailyAtHour(8);
+                .DailyAtHour(0);
             });
         }
     }

@@ -10,9 +10,7 @@ namespace AutoSgin.DB.Models
     {
         public string Name { get; set; }
         public string Domain { get; set; }
-        public string UserName { get; set; }
         public string UserNameFiled { get; set; }
-        public string PassWord { get; set; }
         public string PassWordFiled { get; set; }
         public string SginUrl { get; set; }
         public string SginSuccessResult { get; set; }
@@ -23,6 +21,5 @@ namespace AutoSgin.DB.Models
         public string LoginType { get; set; }
         public string LoginSuccessResult { get; set; }
         public string LoginFailResult { get; set; }
-        public string Cookie { get; set; }
     }
 }
