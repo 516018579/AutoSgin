@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using AutoSgin.DB;
@@ -44,12 +45,18 @@ namespace AutoSgin.Services
 
         private async Task Sgin(WebSite web)
         {
-            var handler = new HttpClientHandler();
-            var httpClient = new HttpClient(handler);
 
 
             async Task UserSgin(UserInfo user)
             {
+                var handler = new HttpClientHandler();
+                var httpClient = new HttpClient(handler);
+
+                if (user.Authorization != null)
+                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+                        "Bearer",
+                        user.Authorization);
+
                 handler.UseCookies = true;
                 var cookieContainer = handler.CookieContainer = new CookieContainer();
 
@@ -98,8 +105,9 @@ namespace AutoSgin.Services
 
                 var isSuccess = text.Contains(web.SginSuccessResult);
 
+                var msg = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} | {web.Name}: {user.UserName}  结果:";
 
-                Console.WriteLine($"{DateTime.Now:yyyy-MM-dd HH:mm:ss}: {(isSuccess ? "OK" : "Fail")}");
+                Console.WriteLine($"{msg} {(isSuccess ? "OK" : "Fail")}");
 
                 if (!isSuccess)
                 {

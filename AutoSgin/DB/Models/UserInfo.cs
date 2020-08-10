@@ -12,5 +12,6 @@ namespace AutoSgin.DB.Models
         public string UserName { get; set; }
         public string PassWord { get; set; }
         public string Cookie { get; set; }
+        public string Authorization { get; set; }
     }
 }
