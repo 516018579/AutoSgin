@@ -111,7 +111,11 @@ namespace AutoSgin.Services
 
                 if (!isSuccess)
                 {
-                    user.Cookie = null;
+                    if (user.PassWord != null)
+                    {
+                        user.Cookie = null;
+                    }
+
                     Console.WriteLine($"失败返回值:{text}");
 
                     throw new Exception("签到失败!");
@@ -124,8 +128,7 @@ namespace AutoSgin.Services
             {
                 await Policy
                     .Handle<Exception>()
-                    //.FallbackAsync((c) => { return Task.CompletedTask; })
-                    .RetryAsync(3)
+                    .WaitAndRetryAsync(3, (x) => TimeSpan.FromSeconds(1))
                     .ExecuteAndCaptureAsync(() => UserSgin(user));
             }
         }

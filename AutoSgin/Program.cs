@@ -14,6 +14,11 @@ namespace AutoSgin
     {
         public static void Main(string[] args)
         {
+            //Console.OutputEncoding = Encoding.UTF8;
+            //Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            //Console.WriteLine(Encoding.GetEncoding("GB2312"));
+            //Console.WriteLine("Æô¶¯");
+
             CreateHostBuilder(args).Build().Run();
         }
 
