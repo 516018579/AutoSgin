@@ -10,7 +10,9 @@ using AutoSgin.DB;
 using AutoSgin.DB.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
+using Newtonsoft.Json.Linq;
 using Polly;
+using Serilog;
 
 namespace AutoSgin.Services
 {
@@ -45,17 +47,11 @@ namespace AutoSgin.Services
 
         private async Task Sgin(WebSite web)
         {
-
-
             async Task UserSgin(UserInfo user)
             {
                 var handler = new HttpClientHandler();
                 var httpClient = new HttpClient(handler);
 
-                if (user.Authorization != null)
-                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
-                        "Bearer",
-                        user.Authorization);
 
                 handler.UseCookies = true;
                 var cookieContainer = handler.CookieContainer = new CookieContainer();
@@ -73,7 +69,9 @@ namespace AutoSgin.Services
 
                         var loginResult = await response.Content.ReadAsStringAsync();
 
-                        Console.WriteLine($"登录返回值:{loginResult}");
+                        user.Token = GetToken(web.Name, loginResult);
+
+                        Log.Information($"登录返回值:{loginResult}");
 
                         if (web.LoginFailResult != null && !loginResult.Contains(web.LoginFailResult) ||
                             web.LoginSuccessResult != null && loginResult.Contains(web.LoginSuccessResult))
@@ -89,7 +87,14 @@ namespace AutoSgin.Services
                     {
                         throw new Exception("网站登录失败!");
                     }
+
+                    await _dbContext.SaveChangesAsync();
                 }
+
+                if (user.Token != null)
+                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+                        "Bearer",
+                        user.Token);
 
                 var uri = new Uri(web.Domain + "/" + web.SginUrl);
 
@@ -107,16 +112,19 @@ namespace AutoSgin.Services
 
                 var msg = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} | {web.Name}: {user.UserName}  结果:";
 
-                Console.WriteLine($"{msg} {(isSuccess ? "OK" : "Fail")}");
+                Log.Information($"{msg} {(isSuccess ? "OK" : "Fail")}");
 
                 if (!isSuccess)
                 {
                     if (user.PassWord != null)
                     {
                         user.Cookie = null;
+
+                        if (web.HasToken)
+                            user.Token = null;
                     }
 
-                    Console.WriteLine($"失败返回值:{text}");
+                    Log.Information($"失败返回值:{text}");
 
                     throw new Exception("签到失败!");
                 }
@@ -175,6 +183,25 @@ namespace AutoSgin.Services
                 await _dbContext.UserInfo.AddAsync(user);
 
             await _dbContext.SaveChangesAsync();
+        }
+
+        private string GetToken(string webName, string loginResult)
+        {
+            string token = null;
+
+            switch (webName)
+            {
+                case "夜世界":
+                    token = GetYeShiJieToken(loginResult);
+                    break;
+            }
+            return token;
+        }
+
+        private string GetYeShiJieToken(string jsonData)
+        {
+            var data = JObject.Parse(jsonData);
+            return data["token"]?.ToString();
         }
     }
 }

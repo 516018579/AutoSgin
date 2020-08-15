@@ -18,6 +18,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Panda.DynamicWebApi;
+using Serilog;
 using Swashbuckle.AspNetCore.Swagger;
 
 namespace AutoSgin
@@ -68,6 +69,8 @@ namespace AutoSgin
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UseSerilogRequestLogging();
 
             app.UseRouting();
 

@@ -21,5 +21,6 @@ namespace AutoSgin.DB.Models
         public string LoginType { get; set; }
         public string LoginSuccessResult { get; set; }
         public string LoginFailResult { get; set; }
+        public bool HasToken { get; set; }
     }
 }
