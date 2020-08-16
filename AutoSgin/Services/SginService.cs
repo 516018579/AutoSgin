@@ -136,7 +136,7 @@ namespace AutoSgin.Services
             {
                 await Policy
                     .Handle<Exception>()
-                    .WaitAndRetryAsync(3, (x) => TimeSpan.FromSeconds(1))
+                    .WaitAndRetryAsync(10, (x) => TimeSpan.FromSeconds(1))
                     .ExecuteAndCaptureAsync(() => UserSgin(user));
             }
         }
